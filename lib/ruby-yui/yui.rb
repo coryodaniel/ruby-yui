@@ -151,8 +151,7 @@ class Yui
       :charset        => nil,
       :preserve_semi  => false,
       :disable_opt    => false,
-      :nomunge        => false,
-      :bundle         => false  #TODO bundle take nil or path to bundle
+      :nomunge        => false
     }
   end
 end

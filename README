@@ -1,2 +1,36 @@
 ruby-yui is a ruby wrapper for the YUI Compressor.
 
+
+==== Usage
+# this also takes a options hash, defaults are stated below
+yui = Yui.new "./path/to/javascripts"
+yui = Yui.new "./path/to/javascripts", :out_path => "./public/javascripts"
+
+# to compress
+yui.minify
+# => true|false if 100% of files where minified
+
+# to compress & bundle
+yui.bundle
+# => path to bundle OR nil if failed to bundle
+
+
+==== Quick Usage
+# This does the same thing as instantiating a Yui object and calling minify
+#   it also takes the same params hash
+
+Yui.compress "./test/data/javascripts"
+# => true|false
+
+
+==== Default Options
+  :clobber        => false,
+  :java_cli       => "java -jar",
+  :yui_jar        => File.join(YUI_ROOT,"ext","yuicompressor-2.4.2.jar"),
+  :suffix         => "yui-min",
+  :out_path       => nil,   #file_path.sub(inpath,outpath)
+  :type           => :js,
+  :charset        => nil,
+  :preserve_semi  => false,
+  :disable_opt    => false,
+  :nomunge        => false
