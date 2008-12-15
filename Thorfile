@@ -1,9 +1,10 @@
 require 'rubygems'
 require 'rubygems/specification'
 require 'thor/tasks'
+require 'lib/ruby-yui/yui'
 
 GEM = "ruby-yui"
-GEM_VERSION = "0.0.1"
+GEM_VERSION = Yui.version
 AUTHOR = "Cory O'Daniel"
 EMAIL = "ruby-yui@coryodaniel.com"
 HOMEPAGE = "http://coryodaniel.com"
@@ -26,7 +27,7 @@ SPEC = Gem::Specification.new do |s|
   s.require_path = 'lib'
   s.bindir = "bin"
   s.executables = []
-  s.files = s.extra_rdoc_files + %w(Thorfile) + Dir.glob("{lib,test,spec}/**/*")
+  s.files = s.extra_rdoc_files + %w(Thorfile) + Dir.glob("{ext,lib,test,spec}/**/*")
 end
 
 class Default < Thor

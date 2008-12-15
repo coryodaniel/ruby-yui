@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{ruby-yui}
-  s.version = "0.0.1"
+  s.version = "0.0.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Cory O'Daniel"]
@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.description = %q{A ruby wrapper for YUI compressor}
   s.email = %q{ruby-yui@coryodaniel.com}
   s.extra_rdoc_files = ["README"]
-  s.files = ["README", "Thorfile", "lib/ruby-yui", "lib/ruby-yui/yui.rb", "lib/ruby-yui.rb", "test/data", "test/data/javascripts", "test/data/javascripts/jquery-1.2.6.js", "test/data/javascripts/prototype.js", "test/data/stylesheets"]
+  s.files = ["README", "Thorfile", "ext/yuicompressor-2.4.2.jar", "lib/ruby-yui", "lib/ruby-yui/yui.rb", "lib/ruby-yui.rb", "test/data", "test/data/javascripts", "test/data/javascripts/jquery-1.2.6.js", "test/data/javascripts/prototype.js", "test/data/stylesheets", "spec/unit", "spec/unit/yui_spec.rb"]
   s.has_rdoc = true
   s.homepage = %q{http://coryodaniel.com}
   s.require_paths = ["lib"]
