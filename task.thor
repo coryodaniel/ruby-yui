@@ -12,6 +12,7 @@ class RubyYui < Thor
     yui.bundle
   end
   
+  desc "clobber PATH", "Clobber ruby-yui generated files"
   def clobber(path)
     yui = Yui.new path
     yui.clobber
