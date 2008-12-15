@@ -1,5 +1,7 @@
 ruby-yui is a ruby wrapper for the YUI Compressor.
 
+==== Install Thor Tasks
+thor install http://github.com/coryodaniel/ruby-yui/raw/master/task.thor
 
 ==== Usage
 # this also takes a options hash, defaults are stated below
