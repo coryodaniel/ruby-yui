@@ -1,4 +1,11 @@
+require 'open3'
+require 'fileutils'
+
 class Yui
+  include Open3
+  
+  class NoInputFileException < Exception;end;
+  
   MAJOR = 0
   MINOR = 0
   RELEASE = 3
@@ -52,11 +59,15 @@ class Yui
   #   Returns path to bundle if successful, otherwise nil
   #
   def bundle
+    if @files.empty?
+      raise NoInputFileException, "Nothing to do, check input path."
+    end
+    
     bundle_data = ""
     successful_compressions = 0
     @files.each do |file|
       cmd = Yui.gen_cmd(file,@options)
-      stdin, stdout, stderr = Open3.popen3(cmd.join(' '))
+      stdin, stdout, stderr = popen3(cmd.join(' '))
       bundle_tmp = stdout.read
       
       if stderr.read.empty?
@@ -79,6 +90,10 @@ class Yui
   end
   
   def minify
+    if @files.empty?
+      raise NoInputFileException, "Nothing to do, check input path."
+    end
+    
     successful_compressions = 0
     
     @files.each do |file|
@@ -96,7 +111,7 @@ class Yui
       FileUtils.mkdir_p File.dirname(out_file)
 
       puts "Compressing:\n\t #{file} =>\n\t #{out_file}"
-      stdin, stdout, stderr = Open3.popen3(cmd.join(' '))
+      stdin, stdout, stderr = popen3(cmd.join(' '))
 
       if stdout.read.empty? && stderr.read.empty?
         successful_compressions += 1 
