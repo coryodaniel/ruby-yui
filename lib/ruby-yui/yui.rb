@@ -1,3 +1,6 @@
+# TODO md5 checksum the compressed files for spec testing to verify they were compressed correctly.
+# TODO output yui.checksums.txt "#{OUT_PATH}\t#{CHECKSUM}\n"
+
 require 'open3'
 require 'fileutils'
 
@@ -8,7 +11,7 @@ class Yui
   
   MAJOR = 0
   MINOR = 0
-  RELEASE = 3
+  RELEASE = 4
   def Yui.version
     [MAJOR,MINOR,RELEASE].join('.')
   end
@@ -30,11 +33,16 @@ class Yui
   def initialize(inpath,options={})
     @inpath   = inpath
     @options  = Yui.defaults.merge(options)
+    @options[:suffix] = "" if @options[:suffix].nil?
     glob_path = File.join(@inpath,"**","*.#{@options[:type]}")
     @files    = Dir.glob(glob_path)
     
+    if @options[:suffix].empty? && outpath == @inpath && @options[:stomp] == false
+      raise Exception, "Your originals will be destroyed without a suffix or an outpath, run again with :stomp => true to allow this."
+    end
+    
     #Dont compress ruby-yui files.
-    @files.delete_if {|file| file =~ /#{@options[:suffix]}/}
+    @files.delete_if {|file| file =~ /#{@options[:suffix]}/} unless @options[:suffix].empty?
     
     self.clobber if @options[:clobber]
   end
@@ -80,7 +88,11 @@ class Yui
     end
     
     if successful_compressions == @files.length
-      bundle_file_name = "bundle.#{@options[:suffix]}.#{@options[:type]}"
+      if @options[:suffix].empty?
+        bundle_file_name = "bundle.#{@options[:type]}"
+      else
+        bundle_file_name = "bundle.#{@options[:suffix]}.#{@options[:type]}"
+      end
       bundle_path = File.join(outpath,bundle_file_name)
       File.open(bundle_path,'w'){|f| f.write(bundle_data)}
       return bundle_path
@@ -99,7 +111,7 @@ class Yui
     @files.each do |file|
       out_file = file.split('.')      # split on '.'
       out_file.pop                    # pop off file extension
-      out_file.push @options[:suffix] # add yui min suffix
+      out_file.push @options[:suffix] unless @options[:suffix].empty? # add yui min suffix
       out_file.push @options[:type]   # add extension back on
       out_file = out_file.join('.')    # put it all together
       
@@ -126,7 +138,13 @@ class Yui
       
   # Clobber *.SUFFIX.(js|css)
   def Yui.clobber(path,suffix,type)
-    files = Dir.glob(File.join(path,"**","*.#{suffix}.#{type}"))
+    if suffix.empty?
+      glob_path = File.join(path,"**.#{type}")
+    else
+      glob_path = File.join(path,"**","*.#{suffix}.#{type}")
+    end
+    
+    files = Dir.glob glob_path
     files.each do |file|
       puts "Clobbering #{file}..."
       FileUtils.rm file
@@ -166,7 +184,8 @@ class Yui
       :charset        => nil,
       :preserve_semi  => false,
       :disable_opt    => false,
-      :nomunge        => false
+      :nomunge        => false,
+      :stomp          => false #destroys originls if NO suffix and NO out_path
     }
   end
 end

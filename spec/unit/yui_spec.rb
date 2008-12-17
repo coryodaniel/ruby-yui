@@ -1,4 +1,5 @@
 require File.join(File.dirname(__FILE__),'..','..','lib','ruby-yui','yui')
+require 'digest/md5'
 
 describe Yui do
   it 'should provide a set of defaults via Yui.defaults' do
@@ -48,5 +49,35 @@ describe Yui do
     lambda {
       yui.bundle
     }.should raise_error(Yui::NoInputFileException)
+  end
+  
+  it 'should raise an exception if no outpath and no suffix is specified' do
+    lambda {
+      yui = Yui.new "./test/data/javascripts", :suffix => nil
+    }.should raise_error(Exception)
+  end
+  
+  it 'should have an identical file name (optionally path) if no suffix is supplied' do
+    yui = Yui.new "./test/data/javascripts", :suffix => nil, :out_path => "./test/data/alt_out_path/javascripts"
+    yui.minify
+    
+    File.exist?("./test/data/alt_out_path/javascripts/prototype.js").should be(true)
+    File.exist?("./test/data/alt_out_path/javascripts/jquery-1.2.6.js").should be(true)
+    
+    FileUtils.rm "./test/data/alt_out_path/javascripts/prototype.js"
+    FileUtils.rm "./test/data/alt_out_path/javascripts/jquery-1.2.6.js"
+  end
+  
+  it 'should allow originals to be stomped with :stomp => true' do
+    pre_md5   = Digest::MD5.hexdigest(File.read("./test/data/stompers/stompable.js"))
+    yui = Yui.new "./test/data/stompers", :suffix => nil, :stomp => true
+    yui.minify
+    post_md5  = Digest::MD5.hexdigest(File.read("./test/data/stompers/stompable.js"))
+    
+    pre_md5.should_not == post_md5
+    
+    #restore backups for testing...
+    FileUtils.cp "./test/data/backups/stompable.js", "./test/data/stompers/stompable.js"
+    
   end
 end
