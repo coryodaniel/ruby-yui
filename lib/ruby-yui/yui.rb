@@ -1,3 +1,7 @@
+# Auto-generated ruby debug require       
+require "ruby-debug"
+Debugger.start
+Debugger.settings[:autoeval] = true if Debugger.respond_to?(:settings)
 # TODO md5 checksum the compressed files for spec testing to verify they were compressed correctly.
 # TODO output yui.checksums.txt "#{OUT_PATH}\t#{CHECKSUM}\n"
 
@@ -91,7 +95,7 @@ class Yui
       if @options[:suffix].empty?
         bundle_file_name = "bundle.#{@options[:type]}"
       else
-        bundle_file_name = "bundle.#{@options[:suffix]}.#{@options[:type]}"
+        bundle_file_name = "bundle#{@options[:suffix]}.#{@options[:type]}"
       end
       bundle_path = File.join(outpath,bundle_file_name)
       File.open(bundle_path,'w'){|f| f.write(bundle_data)}
@@ -109,13 +113,17 @@ class Yui
     successful_compressions = 0
     
     @files.each do |file|
-      out_file = file.split('.')      # split on '.'
-      out_file.pop                    # pop off file extension
-      out_file.push @options[:suffix] unless @options[:suffix].empty? # add yui min suffix
-      out_file.push @options[:type]   # add extension back on
-      out_file = out_file.join('.')    # put it all together
+      #put the suffix on before the externsion if provided
+      if @options[:suffix].empty?
+        out_file = file.clone
+      else
+        out_file = file.split('.')
+        out_file.pop #pop off extension
+        out_file = out_file.join('.') << @options[:suffix] << ".#{@options[:type]}"
+      end
       
-      out_file.sub!(@inpath,outpath) if @options[:out_path]
+      #Substitute the outpath
+      out_file.sub!(@inpath,outpath)
       
       cmd = Yui.gen_cmd(file,@options)
       cmd << "-o #{out_file}"
@@ -141,7 +149,7 @@ class Yui
     if suffix.empty?
       glob_path = File.join(path,"**.#{type}")
     else
-      glob_path = File.join(path,"**","*.#{suffix}.#{type}")
+      glob_path = File.join(path,"**","*#{suffix}.#{type}")
     end
     
     files = Dir.glob glob_path
@@ -178,7 +186,7 @@ class Yui
       :clobber        => false,
       :java_cli       => "java -jar",
       :yui_jar        => File.join(YUI_ROOT,"ext","yuicompressor-2.4.2.jar"),
-      :suffix         => "yui-min",
+      :suffix         => ".yui-min",
       :out_path       => nil,   #file_path.sub(inpath,outpath)
       :type           => :js,
       :charset        => nil,

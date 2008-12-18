@@ -57,10 +57,21 @@ describe Yui do
     }.should raise_error(Exception)
   end
   
+  it 'should be able to specify an alternate out path' do
+    yui = Yui.new "./test/data/javascripts", :out_path => "./test/data/alt_out_path/javascripts"
+    yui.minify
+    
+    File.exist?("./test/data/alt_out_path/javascripts/prototype.yui-min.js").should be(true)
+    File.exist?("./test/data/alt_out_path/javascripts/jquery-1.2.6.yui-min.js").should be(true)
+    
+    FileUtils.rm "./test/data/alt_out_path/javascripts/prototype.yui-min.js"
+    FileUtils.rm "./test/data/alt_out_path/javascripts/jquery-1.2.6.yui-min.js"
+  end
+  
   it 'should have an identical file name (optionally path) if no suffix is supplied' do
     yui = Yui.new "./test/data/javascripts", :suffix => nil, :out_path => "./test/data/alt_out_path/javascripts"
     yui.minify
-    
+
     File.exist?("./test/data/alt_out_path/javascripts/prototype.js").should be(true)
     File.exist?("./test/data/alt_out_path/javascripts/jquery-1.2.6.js").should be(true)
     
@@ -76,7 +87,7 @@ describe Yui do
     
     pre_md5.should_not == post_md5
     
-    #restore backups for testing...
+    #restore backups after testing...
     FileUtils.cp "./test/data/backups/stompable.js", "./test/data/stompers/stompable.js"
     
   end
