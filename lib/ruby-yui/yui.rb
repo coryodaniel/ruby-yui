@@ -71,9 +71,7 @@ class Yui
   #   Returns path to bundle if successful, otherwise nil
   #
   def bundle
-    if @files.empty?
-      raise NoInputFileException, "Nothing to do, check input path."
-    end
+    raise(NoInputFileException, "Nothing to do, check input path.")if @files.empty?
     
     bundle_data = ""
     successful_compressions = 0
@@ -106,9 +104,7 @@ class Yui
   end
   
   def minify
-    if @files.empty?
-      raise NoInputFileException, "Nothing to do, check input path."
-    end
+    raise(NoInputFileException, "Nothing to do, check input path.") if @files.empty?
     
     successful_compressions = 0
     
@@ -125,8 +121,7 @@ class Yui
       #Substitute the outpath
       out_file.sub!(@inpath,outpath)
       
-      cmd = Yui.gen_cmd(file,@options)
-      cmd << "-o #{out_file}"
+      cmd = Yui.gen_cmd(file,@options) << "-o #{out_file}"
       
       FileUtils.mkdir_p File.dirname(out_file)
 
@@ -152,8 +147,7 @@ class Yui
       glob_path = File.join(path,"**","*#{suffix}.#{type}")
     end
     
-    files = Dir.glob glob_path
-    files.each do |file|
+    Dir.glob(glob_path).each do |file|
       puts "Clobbering #{file}..."
       FileUtils.rm file
     end
@@ -165,8 +159,7 @@ class Yui
   #   Was 100% of files compressed
   #
   def Yui.compress(inpath,options={})
-    _yui_obj = Yui.new(inpath,options)
-    _yui_obj.minify
+    Yui.new(inpath,options).minify
   end
   
   protected
