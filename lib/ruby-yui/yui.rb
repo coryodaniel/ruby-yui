@@ -128,10 +128,20 @@ class Yui
       puts "Compressing:\n\t #{file} =>\n\t #{out_file}"
       stdin, stdout, stderr = popen3(cmd.join(' '))
 
-      if stdout.read.empty? && stderr.read.empty?
+      stdout = stdout.read
+      stderr = stderr.read
+
+      if stdout.empty? && stderr.empty?
         successful_compressions += 1 
       else
         puts "Failed to compress: #{file}"
+        if @options[:rename_on_fail] && !@options[:suffix].empty?
+          puts "Copying:\n\t #{file} =>\n\t #{out_file}"
+          FileUtils.cp file, out_file
+        end
+
+        puts "OUT: #{stdout}"
+        puts "ERR: #{stderr}"
       end
     end
     
@@ -186,7 +196,8 @@ class Yui
       :preserve_semi  => false,
       :disable_opt    => false,
       :nomunge        => false,
-      :stomp          => false #destroys originls if NO suffix and NO out_path
+      :stomp          => false, #destroys originls if NO suffix and NO out_path
+      :rename_on_fail => false  #If failed to compress and suffix given, original file will be renamed still
     }
   end
 end
