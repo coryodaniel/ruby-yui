@@ -7,15 +7,17 @@ thor install http://github.com/coryodaniel/ruby-yui/raw/master/task.thor
 # this also takes a options hash, defaults are stated below
 yui = Yui.new "./path/to/javascripts"
 yui = Yui.new "./path/to/javascripts", :out_path => "./public/javascripts"
+yui = Yui.new "./path/to/javascripts/application.js"
+yui = Yui.new "./path/to/javascripts/*.my.cool.glob.*.js"
 
 # to compress
 yui.minify
+Yui.compress_string("alert('hello world');")
 # => true|false if 100% of files where minified
 
 # to compress & bundle
 yui.bundle
 # => path to bundle OR nil if failed to bundle
-
 
 ==== Quick Usage
 # This does the same thing as instantiating a Yui object and calling minify

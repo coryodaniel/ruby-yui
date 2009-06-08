@@ -57,6 +57,28 @@ describe Yui do
     }.should raise_error(Exception)
   end
   
+  it 'should be able to compress a string' do
+    Yui.compress_string("alert('js');",:js).first.should be(true)
+  end
+  
+  it 'should be able to compress a string to file' do
+    file = "./test/data/alt_out_path/compress_from_str.js"
+    result = Yui.compress_string("alert('js');",:js, file)
+    
+    result.first.should be(true)
+    File.file?(file).should be(true)
+        
+    FileUtils.rm file
+  end
+  
+  it 'should be able to process a single file' do
+    yui = Yui.new "./test/data/javascripts/prototype.js"
+    yui.minify
+    File.exist?("./test/data/javascripts/prototype.yui-min.js").should be(true)
+    
+    FileUtils.rm "./test/data/javascripts/prototype.yui-min.js"
+  end
+  
   it 'should be able to specify an alternate out path' do
     yui = Yui.new "./test/data/javascripts", :out_path => "./test/data/alt_out_path/javascripts"
     yui.minify

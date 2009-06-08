@@ -23,11 +23,10 @@ SPEC = Gem::Specification.new do |s|
   s.email = EMAIL
   s.homepage = HOMEPAGE
   s.rubyforge_project = PROJECT
-    
+  s.executables = ["rubyyui"]    
   s.require_path = 'lib'
   s.bindir = "bin"
-  s.executables = []
-  s.files = s.extra_rdoc_files + %w(Thorfile) + Dir.glob("{ext,lib,test,spec}/**/*")
+  s.files = s.extra_rdoc_files + %w(Thorfile) + Dir.glob("{ext,bin,lib,test,spec}/**/*")
 end
 
 class Default < Thor

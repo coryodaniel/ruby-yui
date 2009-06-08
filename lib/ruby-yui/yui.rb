@@ -2,11 +2,10 @@
 require "ruby-debug"
 Debugger.start
 Debugger.settings[:autoeval] = true if Debugger.respond_to?(:settings)
-# TODO md5 checksum the compressed files for spec testing to verify they were compressed correctly.
-# TODO output yui.checksums.txt "#{OUT_PATH}\t#{CHECKSUM}\n"
 
 require 'open3'
 require 'fileutils'
+require 'tempfile'
 
 class Yui
   include Open3
@@ -15,37 +14,45 @@ class Yui
   
   MAJOR = 0
   MINOR = 0
-  RELEASE = 4
+  RELEASE = 6
   def Yui.version
     [MAJOR,MINOR,RELEASE].join('.')
   end
   
   YUI_ROOT    = File.join(File.dirname(__FILE__),'..','..')
-      
+  FILE_TYPES  = [:js, :css]
+  
   # Grabs a glob of files
-  # @param inpath [String] path
+  # @param inpath [String] file path, directory or glob
   # @param options [Hash]
   # @see Yui#defaults
-  #
-  # inpath + options[:type] will create a glob,
-  #   directory structure will be replicated in outputh
   #
   # @example
   #   Yui.new("./javascripts")
   #   [/javascripts/main.js, /javascripts/folder/other.js]
   #
-  def initialize(inpath,options={})
+  def initialize(inpath, options = {})    
     @inpath   = inpath
     @options  = Yui.defaults.merge(options)
     @options[:suffix] = "" if @options[:suffix].nil?
-    glob_path = File.join(@inpath,"**","*.#{@options[:type]}")
-    @files    = Dir.glob(glob_path)
     
+    @files = if File.file?(@inpath) #Processing a single file
+      extension = File.extname(@inpath).delete!('.').to_sym
+      # set the type automatically
+      @options[:type] = extension if FILE_TYPES.member?(extension)
+      
+      [@inpath]
+    elsif File.directory?(@inpath)
+      Dir[File.join(@inpath,"**","*.#{@options[:type]}")]
+    else # assume its a glob
+      Dir[@inpath]
+    end
+        
     if @options[:suffix].empty? && outpath == @inpath && @options[:stomp] == false
       raise Exception, "Your originals will be destroyed without a suffix or an outpath, run again with :stomp => true to allow this."
     end
     
-    #Dont compress ruby-yui files.
+    #Try not to compress ruby-yui files.
     @files.delete_if {|file| file =~ /#{@options[:suffix]}/} unless @options[:suffix].empty?
     
     self.clobber if @options[:clobber]
@@ -54,9 +61,7 @@ class Yui
   attr_reader :inpath
   attr_reader :options
   
-  def outpath
-    @options[:out_path] || @inpath
-  end
+  def outpath;@options[:out_path] || @inpath;end;
   
   #Clobbers files with the right suffix/type in the outpath
   #   outpath defaults to inpath
@@ -151,16 +156,45 @@ class Yui
       
   # Clobber *.SUFFIX.(js|css)
   def Yui.clobber(path,suffix,type)
-    if suffix.empty?
-      glob_path = File.join(path,"**.#{type}")
+    glob_path = if File.file?(path)
+      path
+    elsif suffix.empty?
+      File.join(path,"**.#{type}")
     else
-      glob_path = File.join(path,"**","*#{suffix}.#{type}")
+      File.join(path,"**","*#{suffix}.#{type}")
     end
     
-    Dir.glob(glob_path).each do |file|
+    Dir[glob_path].each do |file|
       puts "Clobbering #{file}..."
       FileUtils.rm file
     end
+  end
+  
+  #
+  # @param str [String] javascript/css to compress
+  # @param type [Symbol] :js | :css
+  # @param outpath [String] path to (optionally) out put to
+  # 
+  # @return [Array[Boolean,String]] Success, compressed data
+  #
+  # @notes, this is done with the tempfile class
+  #
+  def Yui.compress_string(str,type,outpath =  nil)
+    temp_file = Tempfile.new("rubyui-#{rand(5000)}")
+    temp_file.puts str
+    temp_file.flush
+    
+    cmd = Yui.gen_cmd temp_file.path, Yui.defaults.merge({:type => type})
+    stdin, stdout, stderr = Open3::popen3(cmd.join(' '))
+
+    comp_ok = (stderr.read.empty?)
+    stdout = stdout.read
+    
+    if comp_ok && outpath
+      File.open(outpath,'w+'){ |fs| fs.puts stdout }
+    end
+    
+    [comp_ok, stdout]
   end
   
   # Compresses inpath with options
@@ -175,11 +209,17 @@ class Yui
   protected
   # Generates the command line call
   def Yui.gen_cmd(in_file,options)
-    _cmd = [%{#{options[:java_cli]} #{options[:yui_jar]} #{in_file}}]
+    _cmd = [%{#{options[:java_cli]} #{options[:yui_jar]}}]
+    _cmd << "--type #{options[:type]}"
     _cmd << "--charset #{options[:charset]}" if options[:charset]
-    _cmd << "--nomunge" if options[:nomunge]
-    _cmd << "--preserve-semi" if options[:preserve_semi]
-    _cmd << "--disable-optimizations" if options[:disable_opt]
+    
+    if options[:type] == :js #js only options
+      _cmd << "--nomunge" if options[:nomunge] 
+      _cmd << "--preserve-semi" if options[:preserve_semi]
+      _cmd << "--disable-optimizations" if options[:disable_opt]
+    end
+    
+    _cmd << in_file
     _cmd
   end
   
